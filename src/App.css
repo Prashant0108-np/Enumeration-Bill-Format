@@ -36,3 +36,12 @@
     transform: rotate(360deg);
   }
 }
+
+.scrollbar-hide {
+  -ms-overflow-style: none !important;  /* IE and Edge */
+  scrollbar-width: none !important;     /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none !important;             /* Chrome, Safari, Opera */
+}
