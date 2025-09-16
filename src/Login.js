@@ -11,6 +11,7 @@ import { RiLockPasswordLine } from "react-icons/ri";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
+
 function Login() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -30,7 +31,7 @@ function Login() {
         try {
             await signInWithEmailAndPassword(auth, email.trim().toLowerCase(), password);
             alert("Login Successful!");
-            navigate("/dashboard"); // ✅ redirect after login
+            navigate("/dashboard");
         } catch (error) {
             if (error.code === "auth/user-not-found") {
                 setError("This email is not registered. Please register first.");
@@ -47,7 +48,7 @@ function Login() {
             const provider = new GoogleAuthProvider();
             await signInWithPopup(auth, provider);
             alert("Google login successful!");
-            navigate("/dashboard"); // ✅ redirect after Google login
+            navigate("/dashboard");
         } catch (error) {
             setError(error.message);
         }
@@ -130,7 +131,7 @@ function Login() {
                     </div>
 
                     {/* Password validations - always visible */}
-                    <div className="mb-4 text-sm">
+                    {/* <div className="mb-4 text-sm">
                         <p
                             className={
                                 passwordValidations.length ? "text-green-500" : "text-red-500"
@@ -168,9 +169,9 @@ function Login() {
                         >
                             • One special character (@$!%*?&)
                         </p>
-                    </div>
+                    </div> */}
 
-                    {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
+                    {/* {error && <p className="text-red-500 text-sm mb-2">{error}</p>} */}
 
                     {/* Buttons */}
                     <button
