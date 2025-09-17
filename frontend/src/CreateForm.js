@@ -1,10 +1,17 @@
 
 // code by Harsh
-import React, { useState } from "react";
+// import React, { useState } from "react";
+// import * as XLSX from "xlsx";
+// import { saveAs } from "file-saver";
+import { useState,useEffect } from "react";
+import axios from 'axios'
 
+//connection with backend is completed
 export default function ExamBillForm() {
   const [formData, setFormData] = useState({});
+  const [message , setMessage] = useState('');
 
+  // handle input changes
   const handleChange = (e) => {
     const { name, type, value, checked } = e.target;
     setFormData((prev) => ({
@@ -12,18 +19,67 @@ export default function ExamBillForm() {
       [name]: type === "checkbox" ? checked : value,
     }));
   };
+
+
+  // handle form submit
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log("Submitted formData:", formData);
-    alert("Form submitted — check console for data.");
+    alert("Form submitted — updating Excel…");
+    // handleOverwrite();
   };
+
+
+  //experiments with the api calls 
+  useEffect(()=>{
+    axios.get('http://127.0.0.1:8000/api/hello')
+    .then( response =>{
+      setMessage(response.data.message)
+    })
+  },[])
+
+  
+  
+// NOT WORKING 
+  // // overwrite Excel using form data
+  // const handleOverwrite = async () => {
+  //   // 1. Fetch Excel from public
+  //   const response = await fetch("/Enumeration_Bill_Format.xlsx");
+  //   const arrayBuffer = await response.arrayBuffer();
+
+  //   // 2. Read workbook
+  //   const workbook = XLSX.read(arrayBuffer, { type: "array" });
+
+  //   // 3. First sheet
+  //   const sheetName = workbook.SheetNames[0];
+  //   const worksheet = workbook.Sheets[sheetName];
+
+  //   // 4. Convert sheet to rows
+  //   const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+  //   // 🔹 Example: Put form data into Excel
+  //   // Say, we map "name" → A2, "roll" → B2
+  //   rows[5][10] = formData.name || "Default Name";
+  //   // rows[1][1] = formData.roll || "Default Roll";
+
+  //   // 5. Convert back
+  //   const newWorksheet = XLSX.utils.aoa_to_sheet(rows);
+  //   workbook.Sheets[sheetName] = newWorksheet;
+
+  //   // 6. Save updated file
+  //   const newExcel = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+  //   saveAs(new Blob([newExcel], { type: "application/octet-stream" }), "updated.xlsx");
+  // };
+
+  
+
 
   return (
     <div className="bg-gray-100 p-6">
       <div className=" bg-white shadow rounded-2xl p-8">
         <h1 className="	 text-center mb-6">
-          University of Delhi — Examination Bill
-        </h1>
+          Api response : {message}
+        </h1> 
 
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Header & Examiner */}
