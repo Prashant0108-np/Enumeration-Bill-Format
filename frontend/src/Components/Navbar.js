@@ -1,3 +1,4 @@
+// code by kartik
 // src/components/Navbar.js
 import React, { useState, useEffect } from "react";
 import { auth } from "../firebase";
