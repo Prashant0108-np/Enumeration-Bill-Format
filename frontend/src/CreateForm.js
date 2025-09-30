@@ -8,6 +8,7 @@ import download from 'downloadjs';
 import templatePdf from './Enumeration_Bill_Format.pdf';
 import { db } from './firebase'; 
 import { collection, addDoc } from "firebase/firestore";
+import { auth } from "./firebase";
 
 //connection with backend is completed
 export default function ExamBillForm() {
@@ -38,24 +39,59 @@ const handleGeneratePdf = async (formData) => {
   };
   //handles the details of form
 
-  const handleSubmit = async (e) => {
+  
+
+
+const handleSubmit = async (e) => {
   e.preventDefault();
+
   const data = new FormData(e.target);
   const formObject = Object.fromEntries(data.entries());
 
   try {
-    // Save data in Firebase Firestore
-    await addDoc(collection(db, "examBills"), formObject);
+    // Get Firebase ID token (optional if you verify auth in Django)
+    const user = auth.currentUser; // from your firebase.js
+    const idToken = user ? await user.getIdToken() : null;
+    
 
-    // Generate PDF after saving
+    // Call Django API
+    const res = await axios.post(
+      "http://127.0.0.1:8000/api/exam-bill/",
+      formObject,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: idToken ? `Bearer ${idToken}` : undefined,
+        },
+      }
+    );
+
+    alert(res.data.message);
+
+    // Optional: Generate PDF after saving
     handleGeneratePdf(formObject);
-
-    alert("Form submitted successfully to Firebase!");
   } catch (error) {
-    console.error("Error saving to Firebase: ", error);
+    console.error("Error submitting form:", error);
     alert("Failed to submit form.");
   }
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
   //experiments with the api calls 
