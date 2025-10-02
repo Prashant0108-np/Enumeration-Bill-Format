@@ -17,6 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path,include
 
+#send the url to exam.urls/
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('exam.urls')),  # our app routes
