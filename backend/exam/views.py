@@ -6,6 +6,7 @@ from rest_framework import status
 from .firebase_config import db
 from firebase_admin import auth as firebase_auth
 
+
 class ExamBillView(APIView):
     def post(self, request):
         try:
@@ -16,6 +17,7 @@ class ExamBillView(APIView):
 
             # saving the data in firebase collections
             data = request.data
+            print(uid)
             db.collection("examBills").add({**data, "uid": uid})
 
             return Response({"message": "Form saved successfully!"}, status=status.HTTP_201_CREATED)
