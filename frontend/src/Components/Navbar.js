@@ -60,17 +60,21 @@ function Navbar() {
   {/* Dropdown */}
   {dropdownOpen && (
     <ul className="absolute left-0 -top--25 w-40 bg-white text-black rounded shadow-lg">
-        <li className="px-4 py-2 hover:bg-gray-200 cursor-pointer"
-        onClick={ ()=>
-            navigate("/fill-form")
-        }
-        >For Myself</li>
-        <li className="px-4 py-2 hover:bg-gray-200 cursor-pointer"
-        onClick={ ()=>
-            navigate("/fill-form")
-        }
-        >For Other</li>
-    </ul>
+  <li
+    className="px-4 py-2 hover:bg-gray-200 cursor-pointer"
+    onClick={() => navigate("/fill-form", { state: { prefill: true } })}
+  >
+    For Myself
+  </li>
+
+  <li
+    className="px-4 py-2 hover:bg-gray-200 cursor-pointer"
+    onClick={() => navigate("/fill-form", { state: { prefill: false } })}
+  >
+    For Other
+  </li>
+</ul>
+
   )}
 </li>
 

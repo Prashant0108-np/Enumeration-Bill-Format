@@ -11,6 +11,9 @@ import { AiOutlineMail } from "react-icons/ai";
 import { RiLockPasswordLine } from "react-icons/ri";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "./firebase"; // make sure db is exported
+
 
 
 function Login() {
@@ -29,20 +32,44 @@ function Login() {
     const navigate = useNavigate();
 
     const handleSubmit = async () => {
-        try {
-            await signInWithEmailAndPassword(auth, email.trim().toLowerCase(), password);
-            alert("Login Successful!");
-            navigate("/dashboard");
-        } catch (error) {
-            if (error.code === "auth/user-not-found") {
-                setError("This email is not registered. Please register first.");
-            } else if (error.code === "auth/wrong-password") {
-                alert("Wrong Password");
-            } else {
-                setError(error.message);
-            }
-        }
-    };
+  try {
+    const userCredential = await signInWithEmailAndPassword(
+      auth,
+      email.trim().toLowerCase(),
+      password
+    );
+
+    const user = userCredential.user;
+
+    // get user document from Firestore (assuming doc id = user.uid)
+    const userRef = doc(db, "users", user.uid);
+    const userSnap = await getDoc(userRef);
+
+    if (userSnap.exists()) {
+      const userData = userSnap.data();
+
+      if (userData.role === "admin") {
+        alert("Welcome, Admin!");
+        navigate("/admin");
+      } else if (userData.role === "user") {
+        alert("Welcome, User!");
+        navigate("/dashboard");
+      } else {
+        alert("Unknown role. Please contact support.");
+      }
+    } else {
+      alert("User record not found in Firestore!");
+    }
+  } catch (error) {
+    if (error.code === "auth/user-not-found") {
+      setError("This email is not registered. Please register first.");
+    } else if (error.code === "auth/wrong-password") {
+      alert("Wrong Password");
+    } else {
+      setError(error.message);
+    }
+  }
+};
 
     const handleGoogleLogin = async () => {
         try {

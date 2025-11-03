@@ -4,6 +4,7 @@ import Login from "./Login";
 import Register from "./Register";
 import Dashboard from "./Dashboard";
 import CreateForm from "./CreateForm";
+import AdminPanel from "./Admin";
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
       <Route path="/register" element={<Register />} />
       <Route path="/dashboard" element={<Dashboard />} />
        <Route path="/fill-form" element={<CreateForm />} /> 
+        <Route path="/admin" element={<AdminPanel />} />
     </Routes>
   );
 }

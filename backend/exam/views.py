@@ -23,3 +23,25 @@ class ExamBillView(APIView):
             return Response({"message": "Form saved successfully!"}, status=status.HTTP_201_CREATED)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
+    
+    def get(self, request):
+        """
+        Fetch the latest saved exam bill data for the logged-in user
+        """
+        try:
+            id_token = request.headers.get("Authorization").split(" ")[1]
+            decoded_token = firebase_auth.verify_id_token(id_token)
+            uid = decoded_token["uid"]
+
+            # Fetch all docs with this UID
+            docs = db.collection("examBills").where("uid", "==", uid).get()
+            if not docs:
+                return Response({"message": "No data found"}, status=status.HTTP_404_NOT_FOUND)
+
+            # Return the latest one (you can adjust logic if needed)
+            latest_doc = docs[-1].to_dict()
+            return Response(latest_doc, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
