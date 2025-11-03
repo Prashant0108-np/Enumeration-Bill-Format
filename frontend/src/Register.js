@@ -11,6 +11,8 @@ import { AiOutlineMail } from "react-icons/ai";
 import { RiLockPasswordLine } from "react-icons/ri";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import { doc, setDoc } from "firebase/firestore";
+import { db } from "./firebase";
 
 function Register() {
   const [fullName, setFullName] = useState("");
@@ -20,6 +22,8 @@ function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [role, setRole] = useState("user");
+
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -88,24 +92,38 @@ function Register() {
 
   // 🔹 Register submit
   const handleSubmit = async () => {
-    try {
-      const methods = await fetchSignInMethodsForEmail(auth, email);
-      if (methods.length > 0) {
-        alert("This email is already registered.");
-        return;
-      }
-      if (password !== confirmPassword) {
-        alert("Passwords do not match!");
-        return;
-      }
-      await createUserWithEmailAndPassword(auth, email, password);
-      alert("Registration successful!");
-      navigate("/"); // 🔹 Redirect to login page
-    } catch (error) {
-      alert(error.message);
+  try {
+    const methods = await fetchSignInMethodsForEmail(auth, email);
+    if (methods.length > 0) {
+      alert("This email is already registered.");
+      return;
     }
-  };
 
+    if (password !== confirmPassword) {
+      alert("Passwords do not match!");
+      return;
+    }
+
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+
+    // 🔹 Save user info in Firestore
+    await setDoc(doc(db, "users", user.uid), {
+      fullName,
+      phone,
+      address,
+      bankName,
+      email,
+      role, // 👈 your new role field
+      createdAt: new Date(),
+    });
+
+    alert("Registration successful!");
+    navigate("/");
+  } catch (error) {
+    alert(error.message);
+  }
+};
   // 🔹 Google Register (autofill data)
   const handleGoogleLogin = async () => {
     try {
@@ -232,6 +250,36 @@ function Register() {
             <p className="text-red-500 text-sm mb-2">Password mismatch</p>
           )}
 
+          {/* radio button  */}
+          <div className="flex items-center gap-6 mt-4 mb-2">
+            <label className="flex items-center gap-2">
+              <input
+                type="radio"
+                name="role"
+                value="user"
+                checked={role === "user"}
+                onChange={(e) => setRole(e.target.value)}
+                className="accent-blue-500"
+              />
+              User
+            </label>
+
+
+            <label className="flex items-center gap-2">
+              <input
+                type="radio"
+                name="role"
+                value="admin"
+                checked={role === "admin"}
+                onChange={(e) => setRole(e.target.value)}
+                className="accent-blue-500"
+              />
+              Admin
+            </label>
+          </div>
+
+
+
           {/* Password validations */}
           <div className="mb-4 text-sm">
             {Object.entries(passwordValidations).map(([key, valid]) => (
@@ -245,6 +293,7 @@ function Register() {
             ))}
           </div>
 
+          
           {/* Buttons */}
           <button
             onClick={handleSubmit}
