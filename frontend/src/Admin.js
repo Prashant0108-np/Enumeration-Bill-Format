@@ -17,7 +17,7 @@ export default function AdminPanel() {
   }, []);
 
   const handleOpenForm = (formData) => {
-    navigate("/fill-form", { state: { prefillData: forms, role: "admin" } });
+    navigate("/admin-view-form", { state: { prefillData: formData, prefill: true } });
   };
 
   return (
