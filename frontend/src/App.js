@@ -5,6 +5,7 @@ import Register from "./Register";
 import Dashboard from "./Dashboard";
 import CreateForm from "./CreateForm";
 import AdminPanel from "./Admin";
+import AdminViewForm from "./AdminViewForm";
 
 function App() {
   return (
@@ -14,6 +15,8 @@ function App() {
       <Route path="/dashboard" element={<Dashboard />} />
        <Route path="/fill-form" element={<CreateForm />} /> 
         <Route path="/admin" element={<AdminPanel />} />
+        <Route path="/admin-view-form" element={<AdminViewForm />} />
+
     </Routes>
   );
 }

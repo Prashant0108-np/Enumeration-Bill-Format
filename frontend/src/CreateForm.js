@@ -20,25 +20,39 @@ export default function ExamBillForm() {
   // Fetch user data or prefill if available
   useEffect(() => {
     const fetchFormData = async () => {
+      // ✅ Case 1: Parent component passed prefillData
       if (prefillData) {
-        console.log("Received Prefill Data:", prefillData);
         setFormData(prefillData);
         return;
       }
 
+      // ✅ Case 2: Prefill user Firestore data
       if (!shouldPrefill) return;
 
       const user = auth.currentUser;
       if (!user) return;
-
       const idToken = await user.getIdToken();
+
       try {
-        const res = await axios.get("http://127.0.0.1:8000/api/exam-bill/", {
+        const res = await axios.get("http://127.0.0.1:8000/api/user-data/", {
           headers: {
             Authorization: `Bearer ${idToken}`,
           },
         });
-        setFormData(res.data);
+
+        const userData = res.data;
+
+        // ✅ Map backend user fields → your form fields
+        setFormData(prev => ({
+          ...prev,
+          examinerName: userData.fullName || "",
+          phone: userData.phone || "",
+          address: userData.address || "",
+          bankName: userData.bankName || "",
+        }));
+
+        console.log("User Prefill Loaded:", userData);
+
       } catch (err) {
         console.error("Error fetching user data:", err);
       }
@@ -46,6 +60,7 @@ export default function ExamBillForm() {
 
     fetchFormData();
   }, [prefillData, shouldPrefill]);
+
 
   // Generate PDF from template
   const handleGeneratePdf = async (formData) => {
@@ -55,6 +70,7 @@ export default function ExamBillForm() {
     const pdfDoc = await PDFDocument.load(existingPdfBytes);
     const pages = pdfDoc.getPages();
     const firstPage = pages[0];
+    const secondPage = pages[1];
     const { height } = firstPage.getSize();
 
     // Fill form data on PDF (adjust coordinates as needed)
@@ -124,6 +140,54 @@ export default function ExamBillForm() {
       y: height - 140,
       size: 8,
     });
+    // Part A Fields
+    firstPage.drawText(formData.examinationName || "", { x: 120, y:  height - 238, size: 8 });
+    firstPage.drawText(formData.paperName || "", { x: 80, y: height - 250, size: 8 });
+    firstPage.drawText(formData.papersSet || "", { x:  120, y: height - 275, size: 8 });
+    firstPage.drawText(formData.paperRate || "", { x: 110, y: height - 285, size: 8 });
+    firstPage.drawText(formData.durationHours || "", { x: 130, y: height - 295, size: 8 });
+    firstPage.drawText(formData.additionalExaminers || "", { x: 170, y: height - 308, size: 8 });
+
+    // Practical Examination (Page 1 bottom)
+    firstPage.drawText(formData.practicalHeldOn || "", { x: 160, y: height - 330, size: 8 });
+firstPage.drawText(formData.practicalHeldAt || "", { x: 250, y: height - 330, size: 8 });
+firstPage.drawText(formData.practicalBatchSize || "", { x: 350, y: height - 330, size: 8 });
+firstPage.drawText(formData.practicalPapersSet || "", { x: 160, y: height - 340, size: 8 });
+// firstPage.drawText(formData.practicalNoOfExaminers || "", { x: 250, y: height - 340, size: 8 });
+// firstPage.drawText(formData.practicalRatePerExaminer || "", { x: 350, y: height - 340, size: 8 });
+firstPage.drawText(formData.practicalNoOfValuedScripts || "", { x: 370, y: height - 238, size: 8 });
+firstPage.drawText(formData.practicalRatePerValuedScript || "", { x: 318, y: height - 250, size: 8 });
+firstPage.drawText(formData.practicalConductNoOfCandidates || "", { x: 318, y: height - 274, size: 8 });
+firstPage.drawText(formData.practicalConductRatePerCandidate || "", { x: 318, y: height - 285, size: 8 });
+// firstPage.drawText(formData.practicalValuationNoOfDissertations || "", { x: 250, y: height - 360, size: 8 });
+firstPage.drawText(formData.practicalValuationRatePerDissertation || "", { x: 308, y: height - 308, size: 8 });
+// firstPage.drawText(formData.practicalRemarks || "", { x: 160, y: height - 370, size: 8 });
+
+
+
+    // Part B (Conveyance)
+    firstPage.drawText(formData.convDate || "", { x: 30, y: height - 460, size: 8 });
+    firstPage.drawText(formData.convFrom || "", { x: 100, y: height - 460, size: 8 });
+    firstPage.drawText(formData.convTo || "", { x: 170, y: height - 460, size: 8 });
+    firstPage.drawText(formData.convKms|| "", { x: 260, y: height - 460, size: 8 });
+    firstPage.drawText(formData.convVehicleNo|| "", { x: 290, y: height - 460, size: 8 });
+    firstPage.drawText(formData.convPurpose|| "", { x: 380, y: height - 460, size: 8 });
+    firstPage.drawText(formData.convAmount || "", { x: 450, y: height - 460, size: 8 });
+
+    // firstPage.drawText(formData.)
+
+    // Part C (Contingent Expenses)
+    secondPage.drawText(formData.contDate || "", { x: 38, y: height - 80, size: 8 });
+    // secondPage.drawText(formData.contDetails || "", { x: 170, y: height - 80, size: 8 });
+    secondPage.drawText(formData.contAmount || "", { x: 230, y: height - 82, size: 8 });
+
+    // Totals Section
+    firstPage.drawText(formData.totalPartA || "", { x: 450, y: height - 400, size: 8 });
+    firstPage.drawText(formData.totalPartB || "", { x: 450, y: height - 517, size: 8 });
+    secondPage.drawText(formData.totalPartC || "", { x: 450, y: height - 160, size: 8 });
+    secondPage.drawText(formData.grandTotal || "", { x: 153, y: height - 185, size: 8 });
+    secondPage.drawText(formData.grandTotalWords || "", { x: 120, y: height - 195, size: 8 });
+
 
     const pdfBytes = await pdfDoc.save();
     const blob = new Blob([pdfBytes], { type: "application/pdf" });
@@ -134,31 +198,32 @@ export default function ExamBillForm() {
   // Submit form data to backend
   const handleSubmit = async (e) => {
     e.preventDefault();
+    // alert("hello");
     const data = new FormData(e.target);
     const formObject = Object.fromEntries(data.entries());
 
-    try {
-      const user = auth.currentUser;
-      const idToken = user ? await user.getIdToken() : null;
+    // try {
+    //   const user = auth.currentUser;
+    //   const idToken = user ? await user.getIdToken() : null;
 
-      const res = await axios.post(
-        "http://127.0.0.1:8000/api/exam-bill/",
-        formObject,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: idToken ? `Bearer ${idToken}` : undefined,
-          },
-        }
-      );
+    //   const res = await axios.post(
+    //     "http://127.0.0.1:8000/api/exam-bill/",
+    //     formObject,
+    //     {
+    //       headers: {
+    //         "Content-Type": "application/json",
+    //         Authorization: idToken ? `Bearer ${idToken}` : undefined,
+    //       },
+    //     }
+    //   );
 
-      alert(res.data.message);
-      // Optional: Generate PDF after submit
-      // handleGeneratePdf(formObject);
-    } catch (error) {
-      console.error("Error submitting form:", error);
-      alert("Failed to submit form.");
-    }
+    //   alert(res.data.message);
+    //   // Optional: Generate PDF after submit
+    handleGeneratePdf(formObject);
+    // } catch (error) {
+    //   console.error("Error submitting form:", error);
+    //   alert("Failed to submit form.");
+    // }
   };
 
   return (
@@ -228,20 +293,35 @@ export default function ExamBillForm() {
               <textarea
                 name="address"
                 placeholder="Residential Address"
+                value={formData.address || ""}
+                onChange={(e) =>
+                  setFormData({ ...formData, [e.target.name]: e.target.value })
+                }
                 className="border p-2 rounded col-span-2"
               />
+
               <input
                 name="phone"
                 type="number"
                 placeholder="Phone no."
+                value={formData.phone || ""}
+                onChange={(e) =>
+                  setFormData({ ...formData, [e.target.name]: e.target.value })
+                }
                 className="border p-2 rounded"
               />
+
               <input name="pan" placeholder="PAN" className="border p-2 rounded" />
               <input
                 name="bankName"
                 placeholder="Bank Name"
+                value={formData.bankName || ""}
+                onChange={(e) =>
+                  setFormData({ ...formData, [e.target.name]: e.target.value })
+                }
                 className="border p-2 rounded"
               />
+
               <input
                 name="branch"
                 placeholder="Branch"
