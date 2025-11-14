@@ -25,41 +25,6 @@ class ExamBillView(APIView):
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
     
-    # def get(self, request):
-    #     try:
-    #         # ✅ 1. Check Authorization header
-    #         auth_header = request.headers.get("Authorization")
-    #         if not auth_header:
-    #             return Response({"error": "Missing token"}, status=status.HTTP_401_UNAUTHORIZED)
-
-    #         token = auth_header.split(" ")[1]
-            
-    #         # ✅ 2. Decode Firebase ID Token
-    #         decoded = firebase_auth.verify_id_token(token)
-    #         uid = decoded["uid"]
-
-    #         # ✅ 3. Fetch user document directly
-    #         doc_ref = db.collection("users").document(uid).get()
-
-    #         if not doc_ref.exists:
-    #             return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
-
-    #         # ✅ 4. Convert to dict and return
-    #         user_data = doc_ref.to_dict()
-
-    #         return Response(user_data, status=status.HTTP_200_OK)
-
-    #     except Exception as e:
-    #         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-
-# # exam/views.py
-# from rest_framework.views import APIView
-# from rest_framework.response import Response
-# from rest_framework import status
-# from firebase_admin import auth as firebase_auth
-# from .firebase_config import db
-
 
 class UserDataView(APIView):
     def get(self, request):
@@ -193,6 +158,37 @@ class AddRemarkView(APIView):
             })
 
             return Response({"message": "Remark added successfully"}, status=200)
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=400)
+
+
+class UpdateExamBillView(APIView):
+    def patch(self, request, doc_id):
+        try:
+            # 🔐 1. Verify Firebase token
+            auth_header = request.headers.get("Authorization")
+            if not auth_header:
+                return Response({"error": "Missing token"}, status=401)
+
+            token = auth_header.split(" ")[1]
+            decoded = firebase_auth.verify_id_token(token)
+            uid = decoded["uid"]
+
+            # 🔐 2. Check admin role
+            user_doc = db.collection("users").document(uid).get()
+            if not user_doc.exists or user_doc.to_dict().get("role") != "admin":
+                return Response({"error": "Permission denied"}, status=403)
+
+            # 📌 3. Get update data from frontend
+            update_data = request.data
+            if not update_data:
+                return Response({"error": "No data provided"}, status=400)
+
+            # 📝 4. Update Firestore document
+            db.collection("examBills").document(doc_id).update(update_data)
+
+            return Response({"message": "Form updated successfully"}, status=200)
 
         except Exception as e:
             return Response({"error": str(e)}, status=400)
