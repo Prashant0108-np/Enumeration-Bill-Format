@@ -11,6 +11,8 @@ import { RiLockPasswordLine } from "react-icons/ri";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
+// Register component handles new user account creation with Firebase Authentication.
+// It includes email/password registration, validation, and Google-based signup.
 function Register() {
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
@@ -20,10 +22,14 @@ function Register() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
+  // Password visibility toggles
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  // Error messages for validation
   const [errors, setErrors] = useState({});
+
+  // Password requirement tracker
   const [passwordValidations, setPasswordValidations] = useState({
     length: false,
     uppercase: false,
@@ -34,10 +40,11 @@ function Register() {
 
   const navigate = useNavigate();
 
-  // 🔹 Input validation
+  // Validate specific input fields
   const validateInput = (field, value) => {
     let newErrors = { ...errors };
 
+    // Validate alphabet-only fields
     if (field === "fullName" || field === "bankName") {
       if (/[^a-zA-Z\s]/.test(value)) {
         newErrors[field] = "Enter alphabetical value only";
@@ -46,6 +53,7 @@ function Register() {
       }
     }
 
+    // Validate numeric-only phone number
     if (field === "phone") {
       if (/[^0-9]/.test(value)) {
         newErrors[field] = "Enter numerical value only";
@@ -97,6 +105,8 @@ function Register() {
         alert("Passwords do not match!");
         return;
       }
+
+      // Create new user
       await createUserWithEmailAndPassword(auth, email, password);
       alert("Registration successful!");
       navigate("/"); // 🔹 Redirect to login page
@@ -105,7 +115,7 @@ function Register() {
     }
   };
 
-  // 🔹 Google Register (autofill data)
+  // Google signup and autofill
   const handleGoogleLogin = async () => {
     try {
       const provider = new GoogleAuthProvider();
