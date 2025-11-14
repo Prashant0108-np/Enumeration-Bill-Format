@@ -44,7 +44,32 @@ export default function AdminFormView() {
         }
     };
 
-    const handleUpdate = () => alert("Update clicked");
+      const handleUpdate = async () => {
+    if (!window.confirm("Save the updated changes?")) return;
+
+    try {
+        const user = auth.currentUser;
+        if (!user) throw new Error("User not authenticated");
+
+        const token = await user.getIdToken();
+
+        // 🔥 Call your new Django Update API
+        await axios.patch(
+            `http://127.0.0.1:8000/api/exam-bill/update/${formData.id}/`,
+            formData,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        );
+
+        alert("Updated successfully!");
+    } catch (err) {
+        console.error("Update Error:", err);
+        alert("Failed to update data");
+    }
+};
     const handleDelete = async () => {
         if (!window.confirm("Are you sure you want to delete this form?")) return;
 
