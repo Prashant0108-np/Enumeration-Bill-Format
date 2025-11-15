@@ -5,6 +5,9 @@
 /.pnp
 .pnp.js
 .env
+backend/exam/serviceAccountKey.json
+backend/__pycache__
+backend/exam/__pycache__
 
 # testing
 /coverage
