@@ -8,6 +8,8 @@ import Footer from "./Components/Footer";
 function Dashboard() {
     const navigate = useNavigate();
 
+    // Handles user Logout by signing out from Firebase authentication 
+    // and redirecting the user back to the Logein page
     const handleLogout = async () => {
         await signOut(auth);
         navigate("/");

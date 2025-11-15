@@ -10,11 +10,16 @@ import { RiLockPasswordLine } from "react-icons/ri";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
+// Login component handles user authentication using Email/Password and Google Sign-In.
+// It also provides real-time password validation feedback.
 function Login() {
+    // State variables for input values and validations
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState("");
+
+    // Stores password validation states
     const [passwordValidations, setPasswordValidations] = useState({
         length: false,
         uppercase: false,
@@ -25,6 +30,7 @@ function Login() {
 
     const navigate = useNavigate();
 
+    // Handles login using Email & Password
     const handleSubmit = async () => {
         try {
             await signInWithEmailAndPassword(auth, email.trim().toLowerCase(), password);
@@ -41,6 +47,7 @@ function Login() {
         }
     };
 
+    // Handles login using Google OAuth popup
     const handleGoogleLogin = async () => {
         try {
             const provider = new GoogleAuthProvider();
@@ -52,6 +59,7 @@ function Login() {
         }
     };
 
+    // Tracks password input and updates validation states
     const handlePasswordChange = (pass) => {
         setPassword(pass);
         setPasswordValidations({
@@ -119,6 +127,8 @@ function Login() {
                                 }`}
                             onChange={(e) => handlePasswordChange(e.target.value)}
                         />
+
+                        {/* Toggle password visibility */}
                         <button
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
