@@ -202,28 +202,27 @@ firstPage.drawText(formData.practicalValuationRatePerDissertation || "", { x: 30
     const data = new FormData(e.target);
     const formObject = Object.fromEntries(data.entries());
 
-    // try {
-    //   const user = auth.currentUser;
-    //   const idToken = user ? await user.getIdToken() : null;
+    try {
+      const user = auth.currentUser;
+      const idToken = user ? await user.getIdToken() : null;
 
-    //   const res = await axios.post(
-    //     "http://127.0.0.1:8000/api/exam-bill/",
-    //     formObject,
-    //     {
-    //       headers: {
-    //         "Content-Type": "application/json",
-    //         Authorization: idToken ? `Bearer ${idToken}` : undefined,
-    //       },
-    //     }
-    //   );
+      const res = await axios.post(
+  "http://127.0.0.1:8000/api/exam-bill/",
+  JSON.stringify(formObject), 
+  {
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: idToken ? `Bearer ${idToken}` : undefined,
+    },
+  }
+);
 
-    //   alert(res.data.message);
-    //   // Optional: Generate PDF after submit
-    handleGeneratePdf(formObject);
-    // } catch (error) {
-    //   console.error("Error submitting form:", error);
-    //   alert("Failed to submit form.");
-    // }
+      alert(res.data.message || "Form submitted!");
+      handleGeneratePdf(formObject);
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      alert("Failed to submit form.");
+    }
   };
 
   return (

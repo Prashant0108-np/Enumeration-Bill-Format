@@ -164,6 +164,25 @@ class DeleteExamBillView(APIView):
         except Exception as e:
             return Response({"error": str(e)}, status=400)
 
+class UserExamBillList(APIView):
+    def get(self, request):
+        try:
+            auth_header = request.headers.get("Authorization")
+            if not auth_header:
+                return Response({"error": "Missing token"}, status=401)
+
+            token = auth_header.split(" ")[1]
+            decoded = firebase_auth.verify_id_token(token)
+            uid = decoded["uid"]
+
+            # Fetch only forms where uid matches
+            docs = db.collection("examBills").where("uid", "==", uid).get()
+            forms = [{ "id": d.id, **d.to_dict() } for d in docs]
+
+            return Response(forms, status=200)
+        except Exception as e:
+            return Response({"error": str(e)}, status=400)           
+
 
 class AddRemarkView(APIView):
     def post(self, request, doc_id):
@@ -187,12 +206,14 @@ class AddRemarkView(APIView):
             if not remark:
                 return Response({"error": "Remark cannot be empty"}, status=400)
 
-            # ✅ Update Firestore document
-            db.collection("examBills").document(doc_id).update({
-                "remark": remark
-            })
+            # ✅ Update Firestore document (fix: use .set with merge=True to ensure field is added)
+            db.collection("examBills").document(doc_id).set(
+                {"remark": remark}, merge=True
+            )
 
             return Response({"message": "Remark added successfully"}, status=200)
 
         except Exception as e:
+            print("AddRemarkView error:", str(e))
             return Response({"error": str(e)}, status=400)
+            
