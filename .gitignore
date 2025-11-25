@@ -1,0 +1,12 @@
+# Ignore Google service account key (should not be committed)
+backend/exam/serviceAccountKey.json
+
+# Common ignores
+node_modules/
+build/
+dist/
+/.env
+env/
+venv/
+__pycache__/
+*.pyc
