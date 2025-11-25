@@ -1,6 +1,6 @@
 // code by prashant
 import React, { useState } from "react";
-import { auth } from "./firebase";
+import { auth, db } from "./firebase";
 import {
   createUserWithEmailAndPassword,
   GoogleAuthProvider,
@@ -12,8 +12,9 @@ import { RiLockPasswordLine } from "react-icons/ri";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { doc, setDoc } from "firebase/firestore";
-import { db } from "./firebase";
 
+// Register component handles new user account creation with Firebase Authentication.
+// It includes email/password registration, validation, and Google-based signup.
 function Register() {
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
@@ -24,11 +25,14 @@ function Register() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [role, setRole] = useState("user");
 
-
+  // Password visibility toggles
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  // Error messages for validation
   const [errors, setErrors] = useState({});
+
+  // Password requirement tracker
   const [passwordValidations, setPasswordValidations] = useState({
     length: false,
     uppercase: false,
@@ -39,7 +43,7 @@ function Register() {
 
   const navigate = useNavigate();
 
-  // 🔹 Input validation
+  // Validate specific input fields
   const validateInput = (field, value) => {
     let newErrors = { ...errors };
 
@@ -62,7 +66,6 @@ function Register() {
     setErrors(newErrors);
   };
 
-  // 🔹 Phone number restriction (max 10 digits)
   const handlePhoneChange = (value) => {
     if (/^\d{0,10}$/.test(value)) {
       setPhone(value);
@@ -70,7 +73,6 @@ function Register() {
     }
   };
 
-  // 🔹 Bank name restriction (alphabet only)
   const handleBankNameChange = (value) => {
     if (/^[a-zA-Z\s]*$/.test(value)) {
       setBankName(value);
@@ -78,7 +80,6 @@ function Register() {
     }
   };
 
-  // 🔹 Password validation live check
   const handlePasswordChange = (pass) => {
     setPassword(pass);
     setPasswordValidations({
@@ -92,38 +93,44 @@ function Register() {
 
   // 🔹 Register submit
   const handleSubmit = async () => {
-  try {
-    const methods = await fetchSignInMethodsForEmail(auth, email);
-    if (methods.length > 0) {
-      alert("This email is already registered.");
-      return;
+    try {
+      const methods = await fetchSignInMethodsForEmail(auth, email);
+      if (methods.length > 0) {
+        alert("This email is already registered.");
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        alert("Passwords do not match!");
+        return;
+      }
+
+      // Create new user
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      const user = userCredential.user;
+
+      // Save user info in Firestore
+      await setDoc(doc(db, "users", user.uid), {
+        fullName,
+        phone,
+        address,
+        bankName,
+        email,
+        role,
+        createdAt: new Date(),
+      });
+
+      alert("Registration successful!");
+      navigate("/");
+    } catch (error) {
+      alert(error.message);
     }
+  };
 
-    if (password !== confirmPassword) {
-      alert("Passwords do not match!");
-      return;
-    }
-
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
-
-    // 🔹 Save user info in Firestore
-    await setDoc(doc(db, "users", user.uid), {
-      fullName,
-      phone,
-      address,
-      bankName,
-      email,
-      role, // 👈 your new role field
-      createdAt: new Date(),
-    });
-
-    alert("Registration successful!");
-    navigate("/");
-  } catch (error) {
-    alert(error.message);
-  }
-};
   // 🔹 Google Register (autofill data)
   const handleGoogleLogin = async () => {
     try {
@@ -131,7 +138,6 @@ function Register() {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
-      // 🔹 Autofill form data if available
       if (user.displayName) setFullName(user.displayName);
       if (user.email) setEmail(user.email);
 
@@ -201,7 +207,10 @@ function Register() {
 
           {/* Email */}
           <div className="relative mb-4">
-            <AiOutlineMail className="absolute left-3 inset-y-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+            <AiOutlineMail
+              className="absolute left-3 inset-y-1/2 transform -translate-y-1/2 text-gray-400"
+              size={20}
+            />
             <input
               type="email"
               placeholder="Email"
@@ -213,7 +222,10 @@ function Register() {
 
           {/* Password */}
           <div className="relative mb-2">
-            <RiLockPasswordLine className="absolute left-3 inset-y-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+            <RiLockPasswordLine
+              className="absolute left-3 inset-y-1/2 transform -translate-y-1/2 text-gray-400"
+              size={20}
+            />
             <input
               type={showPassword ? "text" : "password"}
               placeholder="Password"
@@ -231,7 +243,10 @@ function Register() {
 
           {/* Confirm Password */}
           <div className="relative mb-2">
-            <RiLockPasswordLine className="absolute left-3 inset-y-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+            <RiLockPasswordLine
+              className="absolute left-3 inset-y-1/2 transform -translate-y-1/2 text-gray-400"
+              size={20}
+            />
             <input
               type={showConfirmPassword ? "text" : "password"}
               placeholder="Confirm Password"
@@ -246,11 +261,12 @@ function Register() {
               {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
             </button>
           </div>
+
           {password && confirmPassword && password !== confirmPassword && (
             <p className="text-red-500 text-sm mb-2">Password mismatch</p>
           )}
 
-          {/* radio button  */}
+          {/* Role selection */}
           <div className="flex items-center gap-6 mt-4 mb-2">
             <label className="flex items-center gap-2">
               <input
@@ -263,7 +279,6 @@ function Register() {
               />
               User
             </label>
-
 
             <label className="flex items-center gap-2">
               <input
@@ -278,8 +293,6 @@ function Register() {
             </label>
           </div>
 
-
-
           {/* Password validations */}
           <div className="mb-4 text-sm">
             {Object.entries(passwordValidations).map(([key, valid]) => (
@@ -293,7 +306,6 @@ function Register() {
             ))}
           </div>
 
-          
           {/* Buttons */}
           <button
             onClick={handleSubmit}
@@ -327,4 +339,5 @@ function Register() {
     </div>
   );
 }
+
 export default Register;
