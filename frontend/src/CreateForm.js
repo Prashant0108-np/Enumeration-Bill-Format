@@ -12,8 +12,9 @@ import { useFormSubmission } from "./hooks/useFormSubmission";
 import { showToast } from "./utils/toast";
 
 export default function ExamBillForm() {
-  const [formData, setFormData] = useState({});
+  const [formData, setFormDataRaw] = useState({});
   const [message, setMessage] = useState("");
+  const [errors, setErrors] = useState({});
   const { generatePdf } = usePdfGeneration();
   const { submitForm, updateForm } = useFormSubmission();
 
@@ -66,11 +67,92 @@ export default function ExamBillForm() {
     fetchFormData();
   }, [prefillData, shouldPrefill]);
 
+  // Helper: Convert number to words (simple, for rupees)
+  function numberToWords(num) {
+    if (!num || isNaN(num)) return "";
+    const a = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
+    const b = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
+    function inWords(n) {
+      if (n < 20) return a[n];
+      if (n < 100) return b[Math.floor(n / 10)] + (n % 10 ? " " + a[n % 10] : "");
+      if (n < 1000) return a[Math.floor(n / 100)] + " Hundred" + (n % 100 ? " and " + inWords(n % 100) : "");
+      if (n < 100000) return inWords(Math.floor(n / 1000)) + " Thousand" + (n % 1000 ? " " + inWords(n % 1000) : "");
+      if (n < 10000000) return inWords(Math.floor(n / 100000)) + " Lakh" + (n % 100000 ? " " + inWords(n % 100000) : "");
+      return n.toString();
+    }
+    return inWords(Number(num)) + " Rupees Only";
+  }
+
+  const setFormData = (newData) => {
+  const merged = { ...formData, ...newData };
+
+  const papersSet = parseInt(merged.papersSet) || 0;
+  const paperRate = parseInt(merged.paperRate) || 0;
+
+  const noOfScripts = parseInt(merged.practicalNoOfValuedScripts) || 0;
+  const scriptRate = parseInt(merged.practicalRatePerValuedScript) || 0;
+
+  const noOfCandidates = parseInt(merged.practicalConductNoOfCandidates) || 0;
+  const ratePerCandidate = parseInt(merged.practicalConductRatePerCandidate) || 0;
+
+  const ratePerDissertation = parseInt(merged.practicalValuationRatePerDissertation) || 0;
+
+  const totalPartA =
+    papersSet * paperRate +
+    noOfScripts * scriptRate +
+    noOfCandidates * ratePerCandidate +
+    noOfCandidates * ratePerDissertation;
+
+  merged.totalPartA = totalPartA;
+
+  if ("convAmount" in newData) merged.totalPartB = newData.convAmount;
+  if ("contAmount" in newData) merged.totalPartC = newData.contAmount;
+
+  const a = parseInt(merged.totalPartA) || 0;
+  const b = parseInt(merged.totalPartB) || 0;
+  const c = parseInt(merged.totalPartC) || 0;
+
+  const grandTotal = a + b + c;
+  merged.grandTotal = grandTotal || "";
+  merged.grandTotalWords = grandTotal ? numberToWords(grandTotal) : "";
+
+  setFormDataRaw(merged);
+};
+
+  const integerFields = [
+    "totalPartA", "totalPartB", "totalPartC", "grandTotal",
+    "taKms", "taAmount",
+    "convKms", "convAmount",
+    "contAmount"
+  ];
+
+  const validateForm = (formObject) => {
+    const newErrors = {};
+    Object.entries(formObject).forEach(([key, value]) => {
+      if (value === undefined || value === null || value === "") {
+        newErrors[key] = "This field is required.";
+      } else if (integerFields.includes(key)) {
+        if (!/^\d+$/.test(value)) {
+          newErrors[key] = "Please enter a valid integer.";
+        }
+      }
+    });
+    return newErrors;
+  };
+
   // Submit form data to backend
   const handleSubmit = async (e) => {
     e.preventDefault();
     const data = new FormData(e.target);
     const formObject = Object.fromEntries(data.entries());
+
+    const validationErrors = validateForm(formObject);
+    setErrors(validationErrors);
+    if (Object.keys(validationErrors).length > 0) {
+      setMessage("Please fill all required fields correctly.");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
 
     try {
       await submitForm(formObject);
@@ -125,12 +207,20 @@ export default function ExamBillForm() {
   );
 
   return (
-    <SharedForm
-      title="University Bill"
-      formData={formData}
-      setFormData={setFormData}
-      onSubmit={handleSubmit}
-      actions={actions}
-    />
+    <>
+      {message && (
+        <div className="w-full bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 text-center font-semibold sticky top-0 z-50">
+          {message}
+        </div>
+      )}
+      <SharedForm
+        title="University Bill"
+        formData={formData}
+        setFormData={setFormData}
+        onSubmit={handleSubmit}
+        actions={actions}
+        errors={errors}
+      />
+    </>
   );
 }
