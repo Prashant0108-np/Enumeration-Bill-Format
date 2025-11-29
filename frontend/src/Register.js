@@ -1,4 +1,4 @@
-// code by prashant
+// code by Prashant
 import React, { useState } from "react";
 import { auth, db } from "./firebase";
 import {

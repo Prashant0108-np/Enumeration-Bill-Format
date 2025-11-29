@@ -1,0 +1,34 @@
+# dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# environment
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Firebase / Secrets
+backend/exam/serviceAccountKey.json
+frontend/src/firebase.js
+
+# Python cache
+__pycache__/
+*.pyc
+backend/backend/__pycache__/
+backend/exam/__pycache__/
+backend/exam/migrations/__pycache__/
+
+# testing
+coverage/
+
+# production
+build/
+
+# misc
+.DS_Store
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
