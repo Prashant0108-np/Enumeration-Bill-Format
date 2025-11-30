@@ -2,7 +2,7 @@ import axios from "axios";
 import { auth } from "../firebase";
 import { showToast } from "../utils/toast";
 
-const API = import.meta.env.VITE_API_URL;
+const API = process.env.REACT_APP_API_URL;
 
 export const useAdminActions = () => {
   
