@@ -4,9 +4,9 @@ import { showToast } from "../utils/toast";
 
 const API = import.meta.env.VITE_API_URL;
 
-// Added for redeployment testing
-
 export const useAdminActions = () => {
+  
+  // REMARK SUBMIT
   const handleRemarkSubmit = async (formData, remarkText, setFormData, setShowRemarkPopup) => {
     if (!remarkText.trim()) {
       showToast("Remark cannot be empty.", "error");
@@ -18,7 +18,7 @@ export const useAdminActions = () => {
       const token = await user.getIdToken();
 
       await axios.post(
-        `https://enumeration-bill-format.onrender.com/api/exam-bill/delete/${formDataId}/`,
+        `${API}/api/exam-bill/remark/${formData.id}/`,
         { remark: remarkText },
         {
           headers: {
@@ -36,6 +36,7 @@ export const useAdminActions = () => {
     }
   };
 
+  // UPDATE FORM
   const handleUpdate = async (formData) => {
     if (!window.confirm("Save the updated changes?")) return;
 
@@ -44,7 +45,7 @@ export const useAdminActions = () => {
       const token = await user.getIdToken();
 
       await axios.patch(
-        `https://enumeration-bill-format.onrender.com/api/exam-bill/update/${formDataId}/`,
+        `${API}/api/exam-bill/update/${formData.id}/`,
         formData,
         {
           headers: {
@@ -60,6 +61,7 @@ export const useAdminActions = () => {
     }
   };
 
+  // DELETE FORM
   const handleDelete = async (formDataId) => {
     if (!window.confirm("Are you sure you want to delete this form?")) return;
 
