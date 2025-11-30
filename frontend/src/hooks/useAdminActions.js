@@ -18,7 +18,7 @@ export const useAdminActions = () => {
       const token = await user.getIdToken();
 
       await axios.post(
-        `${API}/api/exam-bill/remark/${formData.id}/`,
+        `https://enumeration-bill-format.onrender.com/api/exam-bill/delete/${formDataId}/`,
         { remark: remarkText },
         {
           headers: {
@@ -44,7 +44,7 @@ export const useAdminActions = () => {
       const token = await user.getIdToken();
 
       await axios.patch(
-        `${API}/api/exam-bill/update/${formData.id}/`,
+        `https://enumeration-bill-format.onrender.com/api/exam-bill/update/${formDataId}/`,
         formData,
         {
           headers: {
